@@ -1,26 +1,56 @@
 """
-Transforms and Loads data into the local SQLite3 database
-Example:
-,general name,count_products,ingred_FPro,avg_FPro_products,avg_distance_root,ingred_normalization_term,semantic_tree_name,semantic_tree_node
+Transforms and Loads data into the local databricks database
+
 """
-import sqlite3
+
 import csv
 import os
+from dotenv import load_dotenv
+from databricks import sql
 
-#load the csv file and insert into a new sqlite3 database
-def load(dataset="/workspaces/sqlite-lab/data/GroceryDB_IgFPro.csv"):
-    """"Transforms and Loads data into the local SQLite3 database"""
 
-    #prints the full working directory and path
-    print(os.getcwd())
-    payload = csv.reader(open(dataset, newline=''), delimiter=',')
-    conn = sqlite3.connect('GroceryDB.db')
-    c = conn.cursor()
-    c.execute("DROP TABLE IF EXISTS GroceryDB")
-    c.execute("CREATE TABLE GroceryDB (id,general_name, count_products, ingred_FPro, avg_FPro_products, avg_distance_root, ingred_normalization_term, semantic_tree_name, semantic_tree_node)")
-    #insert
-    c.executemany("INSERT INTO GroceryDB VALUES (?,?, ?, ?, ?, ?, ?, ?, ?)", payload)
-    conn.commit()
-    conn.close()
-    return "GroceryDB.db"
+# load the csv file and insert into a new databricks database
+def load(dataset="data/US_births.csv"):
+    """ "Transforms and Loads data into the local databricks database"""
+    payload = csv.reader(open(dataset, newline=""), delimiter=",")
+    next(payload)
+    # print(*payload)
+    load_dotenv()
+    with sql.connect(
+        server_hostname=os.getenv("SERVER_HOSTNAME"),
+        http_path=os.getenv("HTTP_PATH"),
+        access_token=os.getenv("DATABRICKS_KEY"),
+    ) as connection:
+        with connection.cursor() as cursor:
+            # year,month,date_of_month,day_of_week,births
 
+            cursor.execute(
+                """CREATE TABLE IF NOT EXISTS KaisenYao_example
+                           (year INT, month INT, date_of_month INT, 
+                           day_of_week INT, births INT);
+                           """
+            )
+
+            cursor.execute("SELECT * FROM KaisenYao_example")
+            result = cursor.fetchall()
+            if not result:
+                print("here")
+                string_sql = "INSERT INTO KaisenYao_example VALUES"
+                for i in payload:
+                    string_sql += "\n" + str(tuple(i)) + ","
+                string_sql = string_sql[:-1] + ";"
+                print(string_sql)
+
+                cursor.execute(string_sql)
+                # result = cursor.fetchall()
+
+                # for row in result:
+                #     print(row)
+
+            cursor.close()
+            connection.close()
+    return "db loaded or already loaded"
+
+
+if __name__ == "__main__":
+    load()
