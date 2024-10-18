@@ -1,5 +1,6 @@
-[![CI](https://github.com/nogibjj/KaisenYao_example/actions/workflows/cicd.yml/badge.svg)](https://github.com/nogibjj/KaisenYao_example/actions/workflows/cicd.yml)
 ## KaisenYao_example
+[![CI](https://github.com/nogibjj/KaisenYao_example/actions/workflows/cicd.yml/badge.svg)](https://github.com/nogibjj/KaisenYao_example/actions/workflows/cicd.yml)
+
 ## File Structure
 ```
 KaisenYao_example/
